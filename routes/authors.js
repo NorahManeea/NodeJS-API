@@ -52,8 +52,8 @@ router.get("/:id", (req,res)=>{
 });
 
 /**
- *  @desc Create New Book 
- * @route /api/books
+ *  @desc Create New Author 
+ * @route /api/authors
  * @method POST
  * @access public
  */
@@ -76,8 +76,8 @@ router.post("/", (req,res)=>{
 });
 
 /**
- *  @desc Update Book by ID
- * @route /api/books/:id
+ *  @desc Update Author by ID
+ * @route /api/authors/:id
  * @method PUT
  * @access public
  */
@@ -99,8 +99,8 @@ router.put("/:id", (req,res)=>{
 
 
 /**
- *  @desc Delete Book by ID
- * @route /api/books/:id
+ *  @desc Delete authoor by ID
+ * @route /api/authors/:id
  * @method DELETE
  * @access public
  */
@@ -113,9 +113,6 @@ router.delete("/:id", (req,res)=>{
         res.status(404).json({message: "Not Found"});
     }
 });
-
-
-
 
 
 //Joi Validation
