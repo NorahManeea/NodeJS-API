@@ -3,6 +3,8 @@ const booksPath = require('./routes/books');
 const authorsPath = require('./routes/authors');
 const mongoose = require("mongoose");
 const dotenv = require('dotenv').config();
+const logger = require("./middlewares/logger");
+const {notFound, errorHandler} = require("./middlewares/errors");
 
 
 //Connection to DB
@@ -16,10 +18,18 @@ const app = express();
 //Apply Middlewares 
 app.use(express.json());
 
+app.use(logger);
+
 
 app.use('/api/books', booksPath);
 
 app.use('/api/authors', authorsPath);
+
+
+// Error Handler Middleware
+app.use(notFound);
+
+app.use(errorHandler);
 
 
 
