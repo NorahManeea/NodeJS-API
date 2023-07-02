@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const Joi = require('joi');
+const asyncHandler = require("express-async-handler");
+const {Author, validateAuthors, validateUpdateAuthors} = require("../models/Author");
 
 const authors = [
     {
@@ -32,24 +33,29 @@ const authors = [
  * @method GET
  * @access public
  */
-router.get("/", (req,res)=>{
-    res.json(authors)
-});
+router.get("/", asyncHandler(
+    async(req,res)=>{
+            const authorList = await Author.find();
+            res.status(200).json(authorList)
+    }
+));
 /**
  *  @desc Get authors by ID
  * @route /api/authors/:id
  * @method GET
  * @access public
  */
-router.get("/:id", (req,res)=>{
-    const author = authors.find(a => a.id === parseInt(req.params.id))
-    if(author){
-        res.status(201).json(author)
-    }
-    else{
-        res.status(404).json({message: "Not Found"})
-    }
-});
+router.get("/:id", asyncHandler(
+    async(req,res)=>{
+            const author = await Author.findById(req.params.id)
+            if(author){
+                res.status(201).json(author);
+            }
+            else{
+                res.status(404).json({message: "Not Found"})
+            }
+        }
+));
 
 /**
  *  @desc Create New Author 
@@ -57,23 +63,22 @@ router.get("/:id", (req,res)=>{
  * @method POST
  * @access public
  */
-router.post("/", (req,res)=>{
-    const {error} = validateAuthors(req.body)
-    if(error){
-        return res.status(404).json({message: error.details[0].message})
+router.post("/", asyncHandler(
+    async(req,res)=>{
+        const {error} = validateAuthors(req.body)
+        if(error){
+            return res.status(404).json({message: error.details[0].message})
+        }
+            const author = new Author({
+                fname: req.body.fname,
+                lname: req.body.lname,
+                nationality: req.body.nationality,
+                img: req.body.img
+            });
+            const result = await author.save();
+            res.status(201).json(result);
     }
-   
-    const author = {
-        id: authors.length + 1,
-        fname: req.body.fname,
-        lname: req.body.lname,
-        nationality: req.body.nationality,
-        img: req.body.img
-    }
-    authors.push(author);
-    res.status(201).json(author)
-
-});
+));
 
 /**
  *  @desc Update Author by ID
@@ -81,21 +86,26 @@ router.post("/", (req,res)=>{
  * @method PUT
  * @access public
  */
-router.put("/:id", (req,res)=>{
-    const {error} = validateApdateAuthors(req.body);
-    if(error){
-        return res.status(401).json({message: error.details[0].message})
+router.put("/:id", asyncHandler(
+    async(req,res)=>{
+            const {error} = validateUpdateAuthors(req.body);
+            if(error){
+                return res.status(401).json({message: error.details[0].message})
+            }
+        
+            const autohr = await Author.findByIdAndUpdate(req.params.id, {
+                $set: {
+                    fname : req.body.fname,
+                    lname : req.body.lname,
+                    nationality : req.body.nationality,
+                    img : req.body.img,
+                }
+            }, {
+                new: true
+            });
+            res.status(200).json(autohr);  
     }
-
-    const author = authors.find(a => a.id === parseInt(req.params.id));
-    if(author){
-        res.status(200).json({message: "updated successfully"});
-    }
-    else{
-        res.status(404).json({message: "Not Found"});
-    }
-    
-});
+));
 
 
 /**
@@ -104,42 +114,18 @@ router.put("/:id", (req,res)=>{
  * @method DELETE
  * @access public
  */
-router.delete("/:id", (req,res)=>{
-    const author = authors.find(a => a.id === parseInt(req.params.id));
-    if(author){
-        res.status(200).json({message: "Deleted successfully"});
+router.delete("/:id", asyncHandler(
+    async(req,res)=>{
+            const author = Author.findById(req.params.id);
+            if(author){
+                await Author.findByIdAndDelete(req.params.id);
+                res.status(200).json({message: "Deleted successfully"});
+            }
+            else{
+                res.status(404).json({message: "Not Found"});
+            }
     }
-    else{
-        res.status(404).json({message: "Not Found"});
-    }
-});
+));
 
 
-//Joi Validation
-function validateAuthors(obj){
-    const schema = Joi.object({ 
-        fname: Joi.string().trim().min(3).max(50).required(),
-
-        lname: Joi.string().trim().min(3).max(50).required(),
-    
-        nationality: Joi.string().min(3).max(80).required(),
-
-        img: Joi.any(),
-
-    });
-    return schema.validate(obj)
-}
-function validateApdateAuthors(obj){
-    const schema = Joi.object({ 
-        fname: Joi.string().trim().min(3).max(50),
-
-        lname: Joi.string().trim().min(3).max(50),
-    
-        nationality: Joi.string().min(3).max(80),
-
-        img: Joi.any(),
-
-    });
-    return schema.validate(obj)
-}
 module.exports = router;
