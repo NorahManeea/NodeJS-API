@@ -3,6 +3,8 @@ const router = express.Router();
 const Joi = require('joi');
 const asyncHandler = require("express-async-handler");
 const {Book, validateBooks, validateUpdateBooks} = require("../models/Book");
+const {verifyTokenAndAdmin} = require("../middlewares/verifyToken");
+
 
 const books = [
     {
@@ -59,9 +61,9 @@ router.get("/:id",  asyncHandler(
  *  @desc Create New Book 
  * @route /api/books
  * @method POST
- * @access public
+ * @access private (Only Admin)
  */
-router.post("/", asyncHandler(
+router.post("/", verifyTokenAndAdmin, asyncHandler(
     async(req,res)=>{
 
         // Input Validation We'll used Joi library for validaton rather than this way
@@ -92,9 +94,9 @@ router.post("/", asyncHandler(
  *  @desc Update Book by ID
  * @route /api/books/:id
  * @method PUT
- * @access public
+ * @access private (Only Admin)
  */
-router.put("/:id", asyncHandler(
+router.put("/:id",verifyTokenAndAdmin, asyncHandler(
     async(req,res)=>{
             const {error} = validateUpdateBooks(req.body);
             if(error){
@@ -120,9 +122,9 @@ router.put("/:id", asyncHandler(
  *  @desc Delete Book by ID
  * @route /api/books/:id
  * @method DELETE
- * @access public
+ * @access private (Only Admin)
  */
-router.delete("/:id", asyncHandler(
+router.delete("/:id", verifyTokenAndAdmin, asyncHandler(
     async(req,res)=>{
             const book = Book.findById(req.params.id);
             if(book){

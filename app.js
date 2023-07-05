@@ -1,16 +1,15 @@
 const express = require("express");
 const booksPath = require('./routes/books');
 const authorsPath = require('./routes/authors');
-const mongoose = require("mongoose");
-const dotenv = require('dotenv').config();
+const authPath = require('./routes/auth');
+require('dotenv').config();
 const logger = require("./middlewares/logger");
 const {notFound, errorHandler} = require("./middlewares/errors");
+const {databaseConnection} = require("./config/db");
 
 
 //Connection to DB
-mongoose.connect(process.env.MONGO_URI)
-.then(()=> console.log("Connected to DB"))
-.catch((error)=> console.log("Connected failed to DB", error));
+databaseConnection();
 
 //Init App
 const app = express();
@@ -24,6 +23,10 @@ app.use(logger);
 app.use('/api/books', booksPath);
 
 app.use('/api/authors', authorsPath);
+
+app.use('/api/auth', authPath);
+
+app.use('/api/users', require('./routes/users')); //Another way
 
 
 // Error Handler Middleware
